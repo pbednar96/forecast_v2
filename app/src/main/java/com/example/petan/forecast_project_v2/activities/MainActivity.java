@@ -1,11 +1,18 @@
 package com.example.petan.forecast_project_v2.activities;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -13,18 +20,23 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
 import com.example.petan.forecast_project_v2.R;
+import com.example.petan.forecast_project_v2.adapters.RecycleViewAdapter;
+import com.example.petan.forecast_project_v2.model.Forecast_day;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
-import com.example.petan.forecast_project_v2.model.Forecast_day;
-import com.example.petan.forecast_project_v2.adapters.RecycleViewAdapter;
 
 public class MainActivity extends Activity {
 
@@ -38,15 +50,61 @@ public class MainActivity extends Activity {
     private RecycleViewAdapter recyclerAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    static TextView cityName;
+    static TextView temperatureNow;
+    static TextView textView_pressure;
+    static TextView textView_wind;
+    static ImageView img;
+    public String img_url = "1";
+    boolean tmp = true;
+
+    SharedPreferences mySharedPref;
+    SharedPreferences.Editor mySharedEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
         setContentView (R.layout.activity_main);
 
-       recyclerView = findViewById (R.id.recycleView);
-       jsonrequest ();
-    }
+
+
+
+        temperatureNow = (TextView) findViewById (R.id.textView_tempretature);
+        cityName = (TextView) findViewById (R.id.textView_city);
+        textView_pressure = (TextView) findViewById (R.id.textView_pressure);
+        textView_wind = (TextView) findViewById (R.id.textView_wind);
+        img = (ImageView) findViewById (R.id.imageView_weather);
+        recyclerView = findViewById (R.id.recycleView);
+
+        mySharedPref = getSharedPreferences("myPref", this.MODE_PRIVATE);
+        cityName.setText(mySharedPref.getString("name_city", "Praha"));
+        temperatureNow.setText(mySharedPref.getString("temperatureNow", "0"));
+        textView_pressure.setText(mySharedPref.getString("textView_pressure", "0"));
+        textView_wind.setText(mySharedPref.getString("textView_wind", "0"));
+        new Handler ().postDelayed (new Runnable () {
+                @Override
+                public void run() {
+                    jsonrequest ();
+                    new Handler ().postDelayed (new Runnable () {
+                        @Override
+                        public void run() {
+                                new DownLoadImageTask (img).execute (img_url);
+
+                            mySharedEditor = mySharedPref.edit();
+                            mySharedEditor.putString ("name_city",cityName.getText().toString ());
+                            mySharedEditor.putString("temperatureNow",temperatureNow.getText().toString ());
+                            mySharedEditor.putString("textView_pressure",textView_pressure.getText().toString ());
+                            mySharedEditor.putString("textView_wind",textView_wind.getText().toString ());
+                            mySharedEditor.apply();
+
+                        }
+                    }, 1000);
+                }
+            }, 1000);
+
+        }
+
+
 
     private void jsonrequest() {
 
@@ -61,29 +119,62 @@ public class MainActivity extends Activity {
                     for (int i = 0; i < task.length (); i++) {
 
                         JSONObject temperature = task.getJSONObject (i);
-                        String mDate = temperature.getString ("date");
+                        String date_in = temperature.getString ("date");
+
+                        SimpleDateFormat format = new SimpleDateFormat ("yyyy-MM-dd");
+                        Date date_date = format.parse(date_in);
+
+                        SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
+                        String mDate = sdf.format(date_date);
 
                         JSONObject day = temperature.getJSONObject ("day");
                         String mTemperature = day.getString ("avgtemp_c");
 
                         JSONObject icon = day.getJSONObject ("condition");
                         String mIconUrl = "http:" + icon.getString ("icon");
-                        String sss = String.valueOf (task.length());
+
 
                         Forecast_day fd = new Forecast_day (mDate,mTemperature,mIconUrl);
                         lst_forecast.add (fd);
 
                     }
+
+                    //---------------------------------------------------------------
+
+                    JSONObject city_data_location = response.getJSONObject ("location");
+                    String city = city_data_location.getString ("name");
+                    String country = city_data_location.getString ("country");
+
+                    JSONObject city_data_current = response.getJSONObject ("current");
+                    String temp_c = city_data_current.getString ("temp_c");
+                    //String temp_f = city_data_current.getString ("temp_f");
+                    String precip = city_data_current.getString ("precip_mm");
+                    String wind = city_data_current.getString ("wind_kph");
+
+                    JSONObject city_data_condition = city_data_current.getJSONObject ("condition");
+                    img_url = "http:" + city_data_condition.getString ("icon");
+
+
+                    cityName.setText (city + ", " + country);
+                    temperatureNow.setText (temp_c + "°C");
+                    textView_pressure.setText ("Sražky : " + precip + " mm");
+                    textView_wind.setText ("Rychlost větru : " + wind + " km/h");
+
+
+
                 } catch (JSONException e) {
+                    e.printStackTrace ();
+                } catch (ParseException e) {
                     e.printStackTrace ();
                 }
 
                 setuprecyclerview(lst_forecast);
+                tmp = false;
             }
         }, new Response.ErrorListener () {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                Toast.makeText (MainActivity.this, "No internet connect", Toast.LENGTH_SHORT).show ();
             }
         });
 
@@ -100,4 +191,38 @@ public class MainActivity extends Activity {
         recyclerView.setAdapter (recyclerAdapter);
 
     }
+
+    private class DownLoadImageTask extends AsyncTask<String,Void,Bitmap> {
+        ImageView imageView2;
+
+        public DownLoadImageTask(ImageView imageView){
+            this.imageView2 = imageView;
+        }
+
+        protected Bitmap doInBackground(String...urls){
+            String urlOfImage = urls[0];
+            Bitmap logo = null;
+            try{
+                InputStream is = new URL(urlOfImage).openStream();
+                /*
+                    decodeStream(InputStream is)
+                        Decode an input stream into a bitmap.
+                 */
+                logo = BitmapFactory.decodeStream(is);
+            }catch(Exception e){ // Catch the download exception
+                e.printStackTrace();
+            }
+            return logo;
+        }
+
+        /*
+            onPostExecute(Result result)
+                Runs on the UI thread after doInBackground(Params...).
+         */
+        protected void onPostExecute(Bitmap result){
+            imageView2.setImageBitmap(result);
+
+        }
+    }
+
 }
