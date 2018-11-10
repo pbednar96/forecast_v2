@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:layout_margin="5dp">
+
+    <TextView
+        android:id="@+id/RCTV_day"
+        android:layout_width="match_parent"
+        android:layout_height="25dp"
+        android:text="1.1.2018"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="18dp"/>
+    <ImageView
+        android:id="@+id/RC_image"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="25dp"
+        android:background="@drawable/loading_shape"
+        />
+
+    <TextView
+        android:id="@+id/RCTV_temperature"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:text="11`C"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="18dp"
+        />
+
+</LinearLayout>
