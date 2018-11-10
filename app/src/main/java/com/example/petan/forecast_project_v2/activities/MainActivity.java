@@ -1,6 +1,7 @@
 package com.example.petan.forecast_project_v2.activities;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,6 +11,8 @@ import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,12 +38,16 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnClickListener {
 
-    private final String JSON_URL = "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=Ostrava&days=7";
+    SharedPreferences mySharedPref;
+    SharedPreferences.Editor mySharedEditor;
+
+    private String JSON_URL;
 
     private JsonObjectRequest request;
     private RequestQueue requestQueue;
@@ -55,11 +62,13 @@ public class MainActivity extends Activity {
     static TextView textView_pressure;
     static TextView textView_wind;
     static ImageView img;
+    static TextView date_time;
+    static ImageView btn_refresh;
     public String img_url = "1";
     boolean tmp = true;
+    boolean tmp_imt = false;
 
-    SharedPreferences mySharedPref;
-    SharedPreferences.Editor mySharedEditor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,16 +76,24 @@ public class MainActivity extends Activity {
         setContentView (R.layout.activity_main);
 
 
-
-
         temperatureNow = (TextView) findViewById (R.id.textView_tempretature);
         cityName = (TextView) findViewById (R.id.textView_city);
         textView_pressure = (TextView) findViewById (R.id.textView_pressure);
         textView_wind = (TextView) findViewById (R.id.textView_wind);
+        date_time = (TextView) findViewById (R.id.textView_date);
         img = (ImageView) findViewById (R.id.imageView_weather);
         recyclerView = findViewById (R.id.recycleView);
+        btn_refresh = (ImageView) findViewById(R.id.btn_refresh);
+
+        btn_refresh.setOnClickListener (this);
+
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("dd.MMM.yyyy");
+        date_time.setText (df.format(c));
+
 
         mySharedPref = getSharedPreferences("myPref", this.MODE_PRIVATE);
+        JSON_URL = mySharedPref.getString("url", "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=ostrava&days=7");
         cityName.setText(mySharedPref.getString("name_city", "Praha"));
         temperatureNow.setText(mySharedPref.getString("temperatureNow", "0"));
         textView_pressure.setText(mySharedPref.getString("textView_pressure", "0"));
@@ -89,22 +106,12 @@ public class MainActivity extends Activity {
                         @Override
                         public void run() {
                                 new DownLoadImageTask (img).execute (img_url);
-
-                            mySharedEditor = mySharedPref.edit();
-                            mySharedEditor.putString ("name_city",cityName.getText().toString ());
-                            mySharedEditor.putString("temperatureNow",temperatureNow.getText().toString ());
-                            mySharedEditor.putString("textView_pressure",textView_pressure.getText().toString ());
-                            mySharedEditor.putString("textView_wind",textView_wind.getText().toString ());
-                            mySharedEditor.apply();
-
-                        }
-                    }, 1000);
+                                }
+                    }, 500);
                 }
-            }, 1000);
+            }, 500);
 
         }
-
-
 
     private void jsonrequest() {
 
@@ -128,7 +135,7 @@ public class MainActivity extends Activity {
                         String mDate = sdf.format(date_date);
 
                         JSONObject day = temperature.getJSONObject ("day");
-                        String mTemperature = day.getString ("avgtemp_c");
+                        String mTemperature = day.getString ("avgtemp_c") + "°C";
 
                         JSONObject icon = day.getJSONObject ("condition");
                         String mIconUrl = "http:" + icon.getString ("icon");
@@ -154,6 +161,15 @@ public class MainActivity extends Activity {
                     JSONObject city_data_condition = city_data_current.getJSONObject ("condition");
                     img_url = "http:" + city_data_condition.getString ("icon");
 
+
+
+                    mySharedEditor = mySharedPref.edit();
+                    mySharedEditor.putString ("name_city",cityName.getText().toString ());
+                    mySharedEditor.putString("temperatureNow",temperatureNow.getText().toString ());
+                    mySharedEditor.putString("textView_pressure",textView_pressure.getText().toString ());
+                    mySharedEditor.putString("textView_wind",textView_wind.getText().toString ());
+                    mySharedEditor.putString ("city",city);
+                    mySharedEditor.apply();
 
                     cityName.setText (city + ", " + country);
                     temperatureNow.setText (temp_c + "°C");
@@ -192,6 +208,44 @@ public class MainActivity extends Activity {
 
     }
 
+    @Override
+    public void onClick(View view) {
+        if(tmp == true) {
+            new Handler ().postDelayed (new Runnable () {
+                @Override
+                public void run() {
+                    jsonrequest ();
+                    if(tmp_imt == false) {
+                        new Handler ().postDelayed (new Runnable () {
+                            @Override
+                            public void run() {
+                                new DownLoadImageTask (img).execute (img_url);
+                            }
+                        }, 1000);}
+                }
+            }, 1000);
+            Toast.makeText (this, "Refresh1", Toast.LENGTH_SHORT).show ();
+        }
+        else {
+            new Handler ().postDelayed (new Runnable () {
+                @Override
+                public void run() {
+                    lst_forecast.clear ();
+                    jsonrequest ();
+                    if(tmp_imt == false) {
+                    new Handler ().postDelayed (new Runnable () {
+                        @Override
+                        public void run() {
+                            new DownLoadImageTask (img).execute (img_url);
+                        }
+                    }, 5000);}
+                }
+            }, 5000);
+            Toast.makeText (this, "Refresh2", Toast.LENGTH_SHORT).show ();}
+    }
+
+
+
     private class DownLoadImageTask extends AsyncTask<String,Void,Bitmap> {
         ImageView imageView2;
 
@@ -204,25 +258,22 @@ public class MainActivity extends Activity {
             Bitmap logo = null;
             try{
                 InputStream is = new URL(urlOfImage).openStream();
-                /*
-                    decodeStream(InputStream is)
-                        Decode an input stream into a bitmap.
-                 */
                 logo = BitmapFactory.decodeStream(is);
-            }catch(Exception e){ // Catch the download exception
+                tmp_imt = true;
+            }catch(Exception e){
                 e.printStackTrace();
+                tmp_imt = false;
             }
             return logo;
         }
 
-        /*
-            onPostExecute(Result result)
-                Runs on the UI thread after doInBackground(Params...).
-         */
         protected void onPostExecute(Bitmap result){
             imageView2.setImageBitmap(result);
 
         }
     }
+
+
+
 
 }
