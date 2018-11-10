@@ -64,10 +64,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     static ImageView img;
     static TextView date_time;
     static ImageView btn_refresh;
+    static ImageView btn_add;
     public String img_url = "1";
     boolean tmp = true;
     boolean tmp_imt = false;
-
 
 
     @Override
@@ -83,35 +83,37 @@ public class MainActivity extends Activity implements View.OnClickListener {
         date_time = (TextView) findViewById (R.id.textView_date);
         img = (ImageView) findViewById (R.id.imageView_weather);
         recyclerView = findViewById (R.id.recycleView);
-        btn_refresh = (ImageView) findViewById(R.id.btn_refresh);
+        btn_refresh = (ImageView) findViewById (R.id.btn_refresh);
+        btn_add = (ImageView) findViewById (R.id.btn_add);
 
         btn_refresh.setOnClickListener (this);
+        btn_add.setOnClickListener (this);
 
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("dd.MMM.yyyy");
-        date_time.setText (df.format(c));
+        Date c = Calendar.getInstance ().getTime ();
+        SimpleDateFormat df = new SimpleDateFormat ("dd.MMM.yyyy");
+        date_time.setText (df.format (c));
 
 
-        mySharedPref = getSharedPreferences("myPref", this.MODE_PRIVATE);
-        JSON_URL = mySharedPref.getString("url", "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=ostrava&days=7");
-        cityName.setText(mySharedPref.getString("name_city", "Praha"));
-        temperatureNow.setText(mySharedPref.getString("temperatureNow", "0"));
-        textView_pressure.setText(mySharedPref.getString("textView_pressure", "0"));
-        textView_wind.setText(mySharedPref.getString("textView_wind", "0"));
+        mySharedPref = getSharedPreferences ("myPref", this.MODE_PRIVATE);
+        JSON_URL = mySharedPref.getString ("url", "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=ostrava&days=7");
+        cityName.setText (mySharedPref.getString ("name_city", "Praha"));
+        temperatureNow.setText (mySharedPref.getString ("temperatureNow", "0"));
+        textView_pressure.setText (mySharedPref.getString ("textView_pressure", "0"));
+        textView_wind.setText (mySharedPref.getString ("textView_wind", "0"));
         new Handler ().postDelayed (new Runnable () {
-                @Override
-                public void run() {
-                    jsonrequest ();
-                    new Handler ().postDelayed (new Runnable () {
-                        @Override
-                        public void run() {
-                                new DownLoadImageTask (img).execute (img_url);
-                                }
-                    }, 500);
-                }
-            }, 500);
+            @Override
+            public void run() {
+                jsonrequest ();
+                new Handler ().postDelayed (new Runnable () {
+                    @Override
+                    public void run() {
+                        new DownLoadImageTask (img).execute (img_url);
+                    }
+                }, 500);
+            }
+        }, 500);
 
-        }
+    }
 
     private void jsonrequest() {
 
@@ -129,10 +131,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         String date_in = temperature.getString ("date");
 
                         SimpleDateFormat format = new SimpleDateFormat ("yyyy-MM-dd");
-                        Date date_date = format.parse(date_in);
+                        Date date_date = format.parse (date_in);
 
-                        SimpleDateFormat sdf = new SimpleDateFormat("EEEE");
-                        String mDate = sdf.format(date_date);
+                        SimpleDateFormat sdf = new SimpleDateFormat ("EEEE");
+                        String mDate = sdf.format (date_date);
 
                         JSONObject day = temperature.getJSONObject ("day");
                         String mTemperature = day.getString ("avgtemp_c") + "°C";
@@ -141,7 +143,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         String mIconUrl = "http:" + icon.getString ("icon");
 
 
-                        Forecast_day fd = new Forecast_day (mDate,mTemperature,mIconUrl);
+                        Forecast_day fd = new Forecast_day (mDate, mTemperature, mIconUrl);
                         lst_forecast.add (fd);
 
                     }
@@ -162,20 +164,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     img_url = "http:" + city_data_condition.getString ("icon");
 
 
-
-                    mySharedEditor = mySharedPref.edit();
-                    mySharedEditor.putString ("name_city",cityName.getText().toString ());
-                    mySharedEditor.putString("temperatureNow",temperatureNow.getText().toString ());
-                    mySharedEditor.putString("textView_pressure",textView_pressure.getText().toString ());
-                    mySharedEditor.putString("textView_wind",textView_wind.getText().toString ());
-                    mySharedEditor.putString ("city",city);
-                    mySharedEditor.apply();
+                    mySharedEditor = mySharedPref.edit ();
+                    mySharedEditor.putString ("name_city", cityName.getText ().toString ());
+                    mySharedEditor.putString ("temperatureNow", temperatureNow.getText ().toString ());
+                    mySharedEditor.putString ("textView_pressure", textView_pressure.getText ().toString ());
+                    mySharedEditor.putString ("textView_wind", textView_wind.getText ().toString ());
+                    mySharedEditor.putString ("city", city);
+                    mySharedEditor.apply ();
 
                     cityName.setText (city + ", " + country);
                     temperatureNow.setText (temp_c + "°C");
                     textView_pressure.setText ("Sražky : " + precip + " mm");
                     textView_wind.setText ("Rychlost větru : " + wind + " km/h");
-
 
 
                 } catch (JSONException e) {
@@ -184,7 +184,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     e.printStackTrace ();
                 }
 
-                setuprecyclerview(lst_forecast);
+                setuprecyclerview (lst_forecast);
                 tmp = false;
             }
         }, new Response.ErrorListener () {
@@ -210,70 +210,103 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        if(tmp == true) {
-            new Handler ().postDelayed (new Runnable () {
-                @Override
-                public void run() {
-                    jsonrequest ();
-                    if(tmp_imt == false) {
-                        new Handler ().postDelayed (new Runnable () {
-                            @Override
-                            public void run() {
-                                new DownLoadImageTask (img).execute (img_url);
-                            }
-                        }, 1000);}
-                }
-            }, 1000);
-            Toast.makeText (this, "Refresh1", Toast.LENGTH_SHORT).show ();
+        switch (view.getId ()) {
+            case R.id.btn_refresh: {
+                                    if (tmp == true) {
+                                        new Handler ().postDelayed (new Runnable () {
+                                            @Override
+                                            public void run() {
+                                                jsonrequest ();
+                                                if (tmp_imt == false) {
+                                                    new Handler ().postDelayed (new Runnable () {
+                                                        @Override
+                                                        public void run() {
+                                                            new DownLoadImageTask (img).execute (img_url);
+                                                        }
+                                                    }, 1000);
+                                                }
+                                            }
+                                        }, 1000);
+                                        Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
+                                    } else {
+                                        new Handler ().postDelayed (new Runnable () {
+                                            @Override
+                                            public void run() {
+                                                lst_forecast.clear ();
+                                                jsonrequest ();
+                                                if (tmp_imt == false) {
+                                                    new Handler ().postDelayed (new Runnable () {
+                                                        @Override
+                                                        public void run() {
+                                                            new DownLoadImageTask (img).execute (img_url);
+                                                        }
+                                                    }, 5000);
+                                                }
+                                            }
+                                        }, 5000);
+                                        Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
+                                    } break;
+                                }
+            case R.id.btn_add : {
+                Intent intent = new Intent(this, Choose_city.class);
+                startActivityForResult(intent,200);
+                break;
+
+                                }
         }
-        else {
-            new Handler ().postDelayed (new Runnable () {
-                @Override
-                public void run() {
-                    lst_forecast.clear ();
-                    jsonrequest ();
-                    if(tmp_imt == false) {
-                    new Handler ().postDelayed (new Runnable () {
-                        @Override
-                        public void run() {
-                            new DownLoadImageTask (img).execute (img_url);
-                        }
-                    }, 5000);}
-                }
-            }, 5000);
-            Toast.makeText (this, "Refresh2", Toast.LENGTH_SHORT).show ();}
     }
 
-
-
-    private class DownLoadImageTask extends AsyncTask<String,Void,Bitmap> {
+    private class DownLoadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView imageView2;
 
-        public DownLoadImageTask(ImageView imageView){
+        public DownLoadImageTask(ImageView imageView) {
             this.imageView2 = imageView;
         }
 
-        protected Bitmap doInBackground(String...urls){
+        protected Bitmap doInBackground(String... urls) {
             String urlOfImage = urls[0];
             Bitmap logo = null;
-            try{
-                InputStream is = new URL(urlOfImage).openStream();
-                logo = BitmapFactory.decodeStream(is);
+            try {
+                InputStream is = new URL (urlOfImage).openStream ();
+                logo = BitmapFactory.decodeStream (is);
                 tmp_imt = true;
-            }catch(Exception e){
-                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace ();
                 tmp_imt = false;
             }
             return logo;
         }
 
-        protected void onPostExecute(Bitmap result){
-            imageView2.setImageBitmap(result);
+        protected void onPostExecute(Bitmap result) {
+            imageView2.setImageBitmap (result);
 
         }
     }
 
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult (requestCode, resultCode, data);
+        if(requestCode == 200)
+        {
 
-
+            JSON_URL = "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=" + data.getStringExtra ("city") + "&days=7";
+            mySharedEditor = mySharedPref.edit ();
+            mySharedEditor.putString ("url", JSON_URL);
+            mySharedEditor.apply ();
+            new Handler ().postDelayed (new Runnable () {
+                @Override
+                public void run() {
+                    lst_forecast.clear ();
+                    jsonrequest ();
+                    new Handler ().postDelayed (new Runnable () {
+                        @Override
+                        public void run() {
+                            new DownLoadImageTask (img).execute (img_url);
+                        }
+                    }, 1000);
+                }
+            }, 1000);
+        }
+    }
 }
