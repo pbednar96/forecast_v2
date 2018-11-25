@@ -8,23 +8,19 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.petan.forecast_project_v2.R;
 
-import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,6 +29,7 @@ public class Choose_city extends Activity implements View.OnClickListener {
     static ImageView btn_gps;
     static EditText edit_text;
     private LocationManager locationManager;
+    private Location location;
 
 
     @Override
@@ -55,7 +52,7 @@ public class Choose_city extends Activity implements View.OnClickListener {
         Geocoder geocoder = new Geocoder (Choose_city.this, Locale.getDefault ());
         List<Address> addressList;
         try {
-            addressList = geocoder.getFromLocation (lat, lon, 1);
+            addressList = geocoder.getFromLocation (lat, lon, 10);
             if (addressList.size () > 0) {
                 currCity = addressList.get (0).getLocality ();
             }
@@ -65,12 +62,12 @@ public class Choose_city extends Activity implements View.OnClickListener {
         return currCity;
     }
 
-    public void myClick(View view){
-        String city_name = edit_text.getText().toString();
+    public void myClick(View view) {
+        String city_name = edit_text.getText ().toString ();
         Intent intent = new Intent ();
         intent.putExtra ("city", city_name);
         Log.d ("INFO123", city_name);
-        setResult (200,intent);
+        setResult (200, intent);
         finish ();
     }
 
@@ -78,32 +75,35 @@ public class Choose_city extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId ()) {
             case R.id.btn_gps: {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (checkSelfPermission (Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        requestPermissions (new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 10);
-                    } else {
-                        locationManager = (LocationManager) getSystemService (Context.LOCATION_SERVICE);
-                        Location location = locationManager.getLastKnownLocation (LocationManager.NETWORK_PROVIDER);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission (Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions (new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1000);
+                } else {
+                    locationManager = (LocationManager) getSystemService (Context.LOCATION_SERVICE);
+                    location = locationManager.getLastKnownLocation (locationManager.NETWORK_PROVIDER);
+                    try {
                         double lat = location.getLatitude ();
-                        lat = Math.round(lat*100.0)/100.0;
+                        lat = Math.round (lat * 100.0) / 100.0;
                         double lon = location.getLongitude ();
-                        lon = Math.round(lon*100.0)/100.0;
-                        String city = hereLocation (lat,lon);
+                        lon = Math.round (lon * 100.0) / 100.0;
+                        String city = hereLocation (lat, lon);
                         edit_text.setText (city);
-
+                    } catch (Exception e) {
+                        e.printStackTrace ();
+                        Toast.makeText (this, "Not found!", Toast.LENGTH_SHORT).show ();
                     }
                 }
             }
         }
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult (requestCode, permissions, grantResults);
+
         switch (requestCode) {
             case 1000: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    LocationManager locationManager1 = (LocationManager) getSystemService (Context.LOCATION_SERVICE);
+                    LocationManager locationManager = (LocationManager) getSystemService (Context.LOCATION_SERVICE);
                     if (ActivityCompat.checkSelfPermission (this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission (this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
@@ -114,11 +114,17 @@ public class Choose_city extends Activity implements View.OnClickListener {
                         // for ActivityCompat#requestPermissions for more details.
                         return;
                     }
-                    Location location = locationManager1.getLastKnownLocation (locationManager1.NETWORK_PROVIDER);
-                    String city = hereLocation (location.getLatitude (),location.getLongitude ());
+                    location = locationManager.getLastKnownLocation (LocationManager.NETWORK_PROVIDER);
+                    try {
+                        String city = hereLocation (location.getLatitude (), location.getLongitude ());
+                        edit_text.setText (city);
+                    } catch(Exception e){
+                        e.printStackTrace ();
+                        Toast.makeText (this,"Not found!", Toast.LENGTH_SHORT).show ();
+                    }
+                    String city = hereLocation (location.getLatitude (), location.getLongitude ());
                     Log.d ("INFO123", city);
-                }
-                else {
+                } else {
                     Toast.makeText (this, "Permision", Toast.LENGTH_SHORT).show ();
                 }
                 break;

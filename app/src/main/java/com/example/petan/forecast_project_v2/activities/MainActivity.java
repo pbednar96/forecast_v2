@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,9 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -212,47 +208,48 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         switch (view.getId ()) {
             case R.id.btn_refresh: {
-                                    if (tmp == true) {
-                                        new Handler ().postDelayed (new Runnable () {
-                                            @Override
-                                            public void run() {
-                                                jsonrequest ();
-                                                if (tmp_imt == false) {
-                                                    new Handler ().postDelayed (new Runnable () {
-                                                        @Override
-                                                        public void run() {
-                                                            new DownLoadImageTask (img).execute (img_url);
-                                                        }
-                                                    }, 1000);
-                                                }
-                                            }
-                                        }, 1000);
-                                        Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
-                                    } else {
-                                        new Handler ().postDelayed (new Runnable () {
-                                            @Override
-                                            public void run() {
-                                                lst_forecast.clear ();
-                                                jsonrequest ();
-                                                if (tmp_imt == false) {
-                                                    new Handler ().postDelayed (new Runnable () {
-                                                        @Override
-                                                        public void run() {
-                                                            new DownLoadImageTask (img).execute (img_url);
-                                                        }
-                                                    }, 5000);
-                                                }
-                                            }
-                                        }, 5000);
-                                        Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
-                                    } break;
-                                }
-            case R.id.btn_add : {
-                Intent intent = new Intent(this, Choose_city.class);
-                startActivityForResult(intent,200);
+                if (tmp == true) {
+                    new Handler ().postDelayed (new Runnable () {
+                        @Override
+                        public void run() {
+                            jsonrequest ();
+                            if (tmp_imt == false) {
+                                new Handler ().postDelayed (new Runnable () {
+                                    @Override
+                                    public void run() {
+                                        new DownLoadImageTask (img).execute (img_url);
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    }, 1000);
+                    Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
+                } else {
+                    new Handler ().postDelayed (new Runnable () {
+                        @Override
+                        public void run() {
+                            lst_forecast.clear ();
+                            jsonrequest ();
+                            if (tmp_imt == false) {
+                                new Handler ().postDelayed (new Runnable () {
+                                    @Override
+                                    public void run() {
+                                        new DownLoadImageTask (img).execute (img_url);
+                                    }
+                                }, 5000);
+                            }
+                        }
+                    }, 5000);
+                    Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
+                }
+                break;
+            }
+            case R.id.btn_add: {
+                Intent intent = new Intent (this, Choose_city.class);
+                startActivityForResult (intent, 200);
                 break;
 
-                                }
+            }
         }
     }
 
@@ -287,8 +284,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult (requestCode, resultCode, data);
-        if(requestCode == 200)
-        {
+        if (requestCode == 200) {
 
             JSON_URL = "http://api.apixu.com/v1/forecast.json?key=e97d1234f16444b7b3893855182310&q=" + data.getStringExtra ("city") + "&days=7";
             mySharedEditor = mySharedPref.edit ();
