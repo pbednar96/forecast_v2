@@ -141,13 +141,14 @@
         app:layout_constraintVertical_bias="0.037" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/btn_setting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="12dp"
         android:layout_marginTop="8dp"
         android:src="@android:drawable/ic_menu_manage"
+        android:onClick="setting"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView_weather"
@@ -163,7 +164,7 @@
         android:src="@android:drawable/ic_menu_rotate"
         android:onClick="refresh"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/imageView"
+        app:layout_constraintEnd_toStartOf="@+id/btn_setting"
         app:layout_constraintTop_toBottomOf="@+id/imageView_weather"
         app:layout_constraintVertical_bias="0.976"
         tools:ignore="OnClick" />

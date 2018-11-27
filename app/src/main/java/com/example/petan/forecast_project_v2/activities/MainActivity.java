@@ -61,6 +61,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     static TextView date_time;
     static ImageView btn_refresh;
     static ImageView btn_add;
+    static ImageView btn_setting;
     public String img_url = "1";
     boolean tmp = true;
     boolean tmp_imt = false;
@@ -81,7 +82,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         recyclerView = findViewById (R.id.recycleView);
         btn_refresh = (ImageView) findViewById (R.id.btn_refresh);
         btn_add = (ImageView) findViewById (R.id.btn_add);
-
+        btn_setting = (ImageView) findViewById (R.id.btn_setting);
         btn_refresh.setOnClickListener (this);
         btn_add.setOnClickListener (this);
 
@@ -108,6 +109,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }, 500);
             }
         }, 500);
+
 
     }
 
@@ -236,10 +238,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
                                     public void run() {
                                         new DownLoadImageTask (img).execute (img_url);
                                     }
-                                }, 5000);
+                                }, 3000);
                             }
                         }
-                    }, 5000);
+                    }, 3000);
                     Toast.makeText (this, "Refresh", Toast.LENGTH_SHORT).show ();
                 }
                 break;
@@ -249,6 +251,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 startActivityForResult (intent, 200);
                 break;
 
+            }
+            case R.id.btn_setting: {
+                Intent intent = new Intent (this, Setting_app.class);
+                startActivityForResult (intent,205);
+                break;
             }
         }
     }
@@ -304,5 +311,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             }, 1000);
         }
+
+        if (requestCode == 205) {
+
+
+        }
     }
+
+
 }
