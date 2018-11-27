@@ -66,7 +66,6 @@ public class Choose_city extends Activity implements View.OnClickListener {
         String city_name = edit_text.getText ().toString ();
         Intent intent = new Intent ();
         intent.putExtra ("city", city_name);
-        Log.d ("INFO123", city_name);
         setResult (200, intent);
         finish ();
     }
@@ -130,5 +129,13 @@ public class Choose_city extends Activity implements View.OnClickListener {
                 break;
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+       Intent i = new Intent (this, MainActivity.class);
+       Choose_city.this.finish ();
+       startActivity (i);
     }
 }
