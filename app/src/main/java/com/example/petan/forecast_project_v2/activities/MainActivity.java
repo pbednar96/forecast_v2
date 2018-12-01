@@ -1,10 +1,13 @@
 package com.example.petan.forecast_project_v2.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,6 +69,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public String img_url = "1";
     boolean tmp = true;
     boolean tmp_imt = false;
+    static RelativeLayout myLayout;
+
 
 
     @Override
@@ -83,8 +89,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
         btn_refresh = (ImageView) findViewById (R.id.btn_refresh);
         btn_add = (ImageView) findViewById (R.id.btn_add);
         btn_setting = (ImageView) findViewById (R.id.btn_setting);
+        myLayout = (RelativeLayout) findViewById(R.id.rootRL);
+
+
+
         btn_refresh.setOnClickListener (this);
         btn_add.setOnClickListener (this);
+        btn_setting.setOnClickListener (this);
 
         Date c = Calendar.getInstance ().getTime ();
         SimpleDateFormat df = new SimpleDateFormat ("dd.MMM.yyyy");
@@ -97,6 +108,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         temperatureNow.setText (mySharedPref.getString ("temperatureNow", "0"));
         textView_pressure.setText (mySharedPref.getString ("textView_pressure", "0"));
         textView_wind.setText (mySharedPref.getString ("textView_wind", "0"));
+        myLayout.setBackgroundResource(mySharedPref.getInt ("img_bg", getResources().getIdentifier("bg_praha", "drawable", getPackageName())));
         new Handler ().postDelayed (new Runnable () {
             @Override
             public void run() {
@@ -253,8 +265,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             }
             case R.id.btn_setting: {
-                Intent intent = new Intent (this, Setting_app.class);
-                startActivityForResult (intent,205);
+                //Toast.makeText (this, "New", Toast.LENGTH_SHORT).show ();
+                Intent intent1 = new Intent (this, Setting_app.class);
+                startActivityForResult (intent1 , 205);
                 break;
             }
         }
@@ -311,11 +324,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             }, 1000);
         }
-
-        if (requestCode == 205) {
-
-
+        if (requestCode == 205)
+        {
+            String set_color = data.getStringExtra ("bg_img");
+            int id =  Integer.valueOf(set_color);
+            myLayout.setBackgroundResource (id);
+            mySharedEditor = mySharedPref.edit ();
+            mySharedEditor.putInt ("img_bg",id);
+            mySharedEditor.apply ();
         }
+
     }
 
 
